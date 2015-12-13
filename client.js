@@ -18,22 +18,19 @@ client.connect(PORT, HOST, function() {
 
 
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
-    handleState();
+
     var input = readlineSync.question('User input : ');
-    var data = {};
-    data.state   = state;
-    data.message = input;
-    sayToServer(JSON.stringify(data));
+    var req = {};
+    req.state   = state;
+    req.input = input;
+    sayToServer(JSON.stringify(req));
 });
 
-client.on('data', function(data) {
-    data = JSON.parse(data);
-    state = data.state;
-    console.log('Data received : ');
-    console.log(data);
-    handleState();
-
-
+client.on('data', function(response) {
+    response = JSON.parse(response);
+    state = response.state;
+    users = response.users;
+    handleResponse();
 });
 
 
@@ -46,10 +43,15 @@ function sayToServer(message){
 }
 
 
-function handleState(){
+function handleResponse(){
   clearScreen();
+  var req     = {};
+  req.state   = state;
+  req.message = {};
+
   switch(state){
     case 0 :
+    clearScreen();
     console.log('======================');
     console.log('NodeJs - Sockets');
     console.log('======================');
@@ -57,28 +59,42 @@ function handleState(){
     console.log('2 : View User List');
     console.log('3 : Close connection');
     console.log('======================');
+    var input = readlineSync.question('User input : ');
+    req.input = input;
+
     break;
     case 1  :
-    var data = {};
-    data.state   = state;
-    data.message = {};
-
     clearScreen();
     console.log('======================');
     console.log('Register User');
     console.log('======================');
-    data.message.username  = readlineSync.question('Username : ');
-    data.message.email     = readlineSync.question('Email : ');
-    data.message.birthDate = readlineSync.question('Birth Date : ');
-    sayToServer(JSON.stringify(data));
-    console.log(data.message);
+    req.message.username  = readlineSync.question('Username : ');
+    req.message.email     = readlineSync.question('Email : ');
+    req.message.birthDate = readlineSync.question('Birth Date : ');
     break;
+    case 2 :
+    clearScreen();
+    console.log('======================');
+    console.log('User list');
+    console.log('======================');
+    for (var i = 0; i < users.length; i++) {
+      console.log('User ' + i + " : ");
+      console.log('Username : '   + users[i].username );
+      console.log('Email : '      + users[i].email );
+      console.log('Birthdate : '  + users[i].birthDate );
+      console.log('======================');
+    }
+    break;
+    case 3 : break;
+    case 4 : client.destroy(); break;
   }
+
+  sayToServer(JSON.stringify(req));
 }
 
 
 
 function clearScreen(){
-  for(var i = 0; i < 2; i++)
+  for(var i = 0; i < 1; i++)
     console.log('\n');
 }

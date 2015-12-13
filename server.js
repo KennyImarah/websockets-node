@@ -9,7 +9,6 @@ net.createServer(function(sock) {
 
     sock.on('data', function(data) {
         var data = JSON.parse(data);
-        console.log(data);
         handleClientState(data,sock);
     });
 
@@ -23,27 +22,27 @@ net.createServer(function(sock) {
 console.log('Server listening on ' + HOST +':'+ PORT);
 
 function clearScreen(){
-  for(var i = 0; i < 3; i++)
+  for(var i = 0; i < 1; i++)
     console.log('\n');
 }
 
 
-function handleClientState(data,sock){
-    var clientState = data.state;
-    var message     = data.message;
+function handleClientState(req,sock){
+    var clientState = req.state;
+    var message     = req.message;
+    var input       = req.input;
     var response    = {};
-    console.log('handle client state');
-    console.log(message);
     switch (clientState) {
       case 0:
-        message = parseInt(message);
-        switch (message) {
+        input = parseInt(input);
+        switch (input) {
             case 1:
-            console.log('message 1 : checkpoint');
+            console.log('Input 1 : checkpoint');
             response.state = 1;
-            sock.write(JSON.stringify(response));
             break;
             case 2:
+            console.log('Input 1 : checkpoint');
+            response.state = 2;
             default:
             break;
         }
@@ -54,8 +53,14 @@ function handleClientState(data,sock){
         var user = message;
         users.push(user);
         console.log(users);
+        response.state = 0;
       break;
-      default:
+
+      case 2 :
+      response.state = 0;
       break;
+      default: response.state = 0; break;
     }
+    response.users = users;
+    sock.write(JSON.stringify(response));
 }
