@@ -30,28 +30,20 @@ function clearScreen(){
 function handleClientState(req,sock){
     var clientState = req.state;
     var message     = req.message;
-    var input       = req.input;
+    var input       = parseInt(req.input);
     var response    = {};
     switch (clientState) {
       case 0:
-        input = parseInt(input);
-        switch (input) {
-            case 1:
-            console.log('Input 1 : checkpoint');
-            response.state = 1;
-            break;
-            case 2:
-            console.log('Input 1 : checkpoint');
-            response.state = 2;
-            default:
-            break;
-        }
+        response.state = input;
         break;
       case 1 :
         console.log('Server: Registering user');
         console.log(message);
         var user = message;
         users.push(user);
+        console.log('==========================');
+        console.log('User list : ');
+        console.log('==========================');
         console.log(users);
         response.state = 0;
       break;
