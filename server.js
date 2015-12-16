@@ -1,9 +1,9 @@
 //Required dependencies
-var net       = require('net');
-var json = require('json-file');
-var util      = require('util')
-var fs = require('fs');
-var nodemailer = require('nodemailer');
+var net         = require('net');
+var json        = require('json-file');
+var util        = require('util')
+var fs          = require('fs');
+var nodemailer  = require('nodemailer');
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
@@ -50,11 +50,14 @@ var settings      = {};
 
 var file  = json.read('/users.json');
 
-
-
 function saveData(){
-  var stream = fs.createWriteStream("users.json");
+
+  var stream = fs.createWriteStream("/users.json");
   stream.once('open', function(fd) {
+    console.log('');
+    console.log('');
+    console.log('');
+    console.log('');
     var text = JSON.stringify(users);
     stream.write(text);
     stream.end();
@@ -62,7 +65,7 @@ function saveData(){
 }
 
 var users = file.data;
-
+console.log(file.data);
     clearScreen();
     console.log('===============================');
     console.log('Users currently registered : ');
@@ -70,8 +73,7 @@ var users = file.data;
     console.log(users);
     console.log('===============================');
     clearScreen();
-//var users = JSON.parse(file.data);
-//console.log('');
+
 net.createServer(function(sock) {
 
     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
@@ -102,7 +104,7 @@ function handleClientState(req,sock){
     var message     = req.message;
     var input       = parseInt(req.input);
     var response        = {};
-        response.error  =  0;
+        response.error  =  [];
     switch (clientState) {
       case 0:
         response.state = input;
@@ -111,10 +113,24 @@ function handleClientState(req,sock){
         console.log('Server: Registering user');
         console.log(message);
         var user = message;
-        if(validateEmail(user.email))
+
+        if(!validateEmail(user.email))
+          response.error.push(1);
+        if(!validateID(user.id))
+          response.error.push(2);
+        if(!validateDate(user.birthDate))
+          response.error.push(3);
+        if(!compareIds(user.id))
+          response.error.push(4);
+
+        if (response.error.length == 0) {
+          console.log('No errors, Registering user');
           users.push(user);
-        else
-          response.error = 1;
+        }
+        else {
+          console.log('Eror codes');
+          console.log(response.error);
+        }
         console.log('==========================');
         console.log('User list : ');
         console.log(users);
@@ -139,45 +155,58 @@ function handleClientState(req,sock){
       }
       response.state = 0;
       break;
-      case 5 : sendUsersByMail(); break;
+      case 5 :
+      sendUsersByMail(message.receiver);
+      console.log('Email Sent to : ' + message.receiver);
+      break;
       default: response.state = 0; break;
     }
     response.users = users;
-
+    clearScreen();
     saveData();
 
     sock.write(JSON.stringify(response));
 }
 
 
-function validateEmail(email)
-{
+function validateEmail(email){
     console.log('Validating Email : ' + email);
     var re = /\S+@\S+\.\S+/;
     return re.test(email);
 }
 
-function validateID(email)
-{
-    console.log('Validating Email : ' + email);
-    var re = /\S+@\S+\.\S+/;
-    return re.test(email);
+function validateID(id){
+    console.log('Validating ID : ' + id);
+    var re = /^(\d{4}[- ]){2}(\d{5})$/;
+    return re.test(id);
 }
 
+function compareIds(id){
+  for (var i = 0; i < users.length; i++) {
+    if(id == users[i].id)
+    return false;
+  }
+  return true;
+}
+
+function validateDate(date){
+  console.log('Validating birthdate : ' + date);
+  var re = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+  return re.test(date);
+
+}
 function sendUsersByMail(receiverEmail){
-  var htmlString = '<h1>User List </h1> <ul>';
+  var htmlString = '<h1>User List </h1> <ol>';
   console.log(users);
   for (var i = 0; i < users.length; i++) {
     var listItem = '<li>'
-    listItem += '<span> Username :'        + users[i].username    + '<span>' + '<br>';
-    listItem += '<span> Email :'           + users[i].email       + '<span>' + '<br>';
-    listItem += '<span> User ID :'         + users[i].id          + '<span>' + '<br>';
-    listItem += '<span> User Birthdate : ' + users[i].birthDate   + '<span>' + '<br>';
+    listItem += '<span> Username :'        + users[i].username    + '</span>' + '<br>';
+    listItem += '<span> Email :'           + users[i].email       + '</span>' + '<br>';
+    listItem += '<span> User ID :'         + users[i].id          + '</span>' + '<br>';
+    listItem += '<span> User Birthdate : ' + users[i].birthDate   + '</span>' + '<br>';
     listItem += '</li>'
     htmlString += listItem;
   }
-  htmlString += '</ul>'
-
-  send
-  console.log(htmlString);
+  htmlString += '</ol> '
+  sendMail(receiverEmail,htmlString);
 }

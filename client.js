@@ -26,6 +26,7 @@ client.connect(PORT, HOST, function() {
     console.log('2 : View User List');
     console.log('3 : Delete User');
     console.log('4 : Close connection');
+    console.log('5 : Send users by Email');
     console.log('======================');
     var input = readlineSync.question('User input : ');
     var req = {};
@@ -38,7 +39,7 @@ client.on('data', function(response) {
     response = JSON.parse(response);
     state = response.state;
     users = response.users;
-    if(response.error != 0)
+    if(response.error.length != 0)
       handleError(response.error);
     handleResponse();
 });
@@ -69,6 +70,7 @@ function handleResponse(){
     console.log('2 : View User List');
     console.log('3 : Delete User');
     console.log('4 : Close connection');
+    console.log('5 : Send users by Email');
     console.log('======================');
     var input = readlineSync.question('User input : ');
     req.input = input;
@@ -110,8 +112,13 @@ function handleResponse(){
     console.log('=================================================================');
     console.log('================= Disconneting from server ======================');
     console.log('=================================================================');
-
     client.destroy();
+    break;
+    case 5 :
+    console.log('=================================================================');
+    console.log('================= Send Users By Email ===========================');
+    console.log('=================================================================');
+    req.message.receiver = readlineSync.question('Send Email To : ');
     break;
   }
   sayToServer(JSON.stringify(req));
@@ -124,14 +131,31 @@ function clearScreen(){
     console.log('\n');
 }
 
-function handleError(errorCode){
-  switch (errorCode) {
-    case 1:
-    console.log('=================================================================');
-    console.log('Invalid Email, format ( string@string.com ), User not Registered');
-    console.log('=================================================================');
+function handleError(errorCodes){
+  for (var i = 0; i < errorCodes.length; i++) {
+    var code =  errorCodes[i];
+    switch (code) {
+      case 1:
+      console.log('================================================================');
+      console.log('Invalid Email, format ( string@string.com ), User not Registered');
+      console.log('================================================================');
+        break;
+      case 2:
+      console.log('================================================================');
+      console.log('Invalid user id, format ( dddd-dddd-ddddd ), User not Registered');
+      console.log('================================================================');
+        break;
+      case 3:
+      console.log('=============================================================');
+      console.log('Invalid birthdate, format ( dd/mm/yyyy ), User not Registered');
+      console.log('=============================================================');
       break;
-    default:
-
+      case 4:
+      console.log('=============================================================');
+      console.log('Invalid id, id sent already exists, User not Registered');
+      console.log('=============================================================');
+      break;
+    }
   }
+
 }
