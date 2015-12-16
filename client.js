@@ -18,7 +18,14 @@ client.connect(PORT, HOST, function() {
 
 
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
-
+    clearScreen();
+    console.log('======================');
+    console.log('NodeJs - Sockets');
+    console.log('======================');
+    console.log('1 : Register User');
+    console.log('2 : View User List');
+    console.log('3 : Close connection');
+    console.log('======================');
     var input = readlineSync.question('User input : ');
     var req = {};
     req.state   = state;
@@ -57,7 +64,8 @@ function handleResponse(){
     console.log('======================');
     console.log('1 : Register User');
     console.log('2 : View User List');
-    console.log('3 : Close connection');
+    console.log('3 : Delete User');
+    console.log('4 : Close connection');
     console.log('======================');
     var input = readlineSync.question('User input : ');
     req.input = input;
@@ -71,24 +79,38 @@ function handleResponse(){
     req.message.username  = readlineSync.question('Username : ');
     req.message.email     = readlineSync.question('Email : ');
     req.message.birthDate = readlineSync.question('Birth Date : ');
+    req.message.cedula    = readlineSync.question('ID : ');
     break;
+
     case 2 :
     clearScreen();
-    console.log('======================');
+    console.log('========================================');
     console.log('User list');
-    console.log('======================');
+    console.log('========================================');
     for (var i = 0; i < users.length; i++) {
       console.log('User ' + i + " : ");
       console.log('Username : '   + users[i].username );
       console.log('Email : '      + users[i].email );
       console.log('Birthdate : '  + users[i].birthDate );
-      console.log('======================');
+      console.log('ID : '     + users[i].cedula );
+      console.log('======================================');
     }
     break;
-    case 3 : break;
-    case 4 : client.destroy(); break;
-  }
+    case 3 :
+    console.log('=================================================================');
+    console.log('================= Delete User  ==================================');
+    console.log('=================================================================');
+    req.message.cedula = readlineSync.question('ID : ');
+    break;
+    case 4 :
+    clearScreen();
+    console.log('=================================================================');
+    console.log('================= Disconneting from server ======================');
+    console.log('=================================================================');
 
+    client.destroy();
+    break;
+  }
   sayToServer(JSON.stringify(req));
 }
 

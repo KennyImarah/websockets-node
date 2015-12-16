@@ -43,12 +43,16 @@ function handleClientState(req,sock){
         users.push(user);
         console.log('==========================');
         console.log('User list : ');
-        console.log('==========================');
         console.log(users);
+        console.log('==========================');
+
         response.state = 0;
       break;
-
       case 2 :
+      response.state = 0;
+      break;
+      case 3 :
+
       response.state = 0;
       break;
       default: response.state = 0; break;
