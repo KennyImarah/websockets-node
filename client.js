@@ -38,6 +38,8 @@ client.on('data', function(response) {
     response = JSON.parse(response);
     state = response.state;
     users = response.users;
+    if(response.error != 0)
+      handleError(response.error);
     handleResponse();
 });
 
@@ -120,4 +122,16 @@ function handleResponse(){
 function clearScreen(){
   for(var i = 0; i < 1; i++)
     console.log('\n');
+}
+
+function handleError(errorCode){
+  switch (errorCode) {
+    case 1:
+    console.log('=================================================================');
+    console.log('Invalid Email, format ( string@string.com ), User not Registered');
+    console.log('=================================================================');
+      break;
+    default:
+
+  }
 }

@@ -2,17 +2,67 @@
 var net       = require('net');
 var json = require('json-file');
 var util      = require('util')
+var fs = require('fs');
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: 'lenguajesprogramacionnapky@gmail.com',
+        pass: '21251122'
+    }
+});
+function sendMail(receiverEmail, htmlString){
+  // create reusable transporter object using SMTP transport
 
+// NB! No need to recreate the transporter object. You can use
+// the same transporter object for all e-mails
+
+// setup e-mail data with unicode symbols
+var mailOptions = {
+    from: '<lenguajesprogramacionnapky@gmail.com>', // sender address
+    to: receiverEmail, // list of receivers
+    subject: 'Lenguajes de programacion', // Subject line
+    html: htmlString // html body
+};
+
+// send mail with defined transport object
+transporter.sendMail(mailOptions, function(error, info){
+    console.log(mailOptions);
+    if(error){
+        return console.log(error);
+    }
+    console.log('Message sent: ' + info.response);
+
+});
+}
+
+
+
+//sendMail('coco.napky@gmail.com', '<h1>HELLO WORLD</h1>');
 //server set up
 var HOST = '127.0.0.1';
 var PORT = 6969;
+
 
 //file settings
 var settings      = {};
     settings.file = '/users.json';
 
-var file = json.read('/users.json');
+var file  = json.read('/users.json');
+
+
+
+function saveData(){
+  var stream = fs.createWriteStream("users.json");
+  stream.once('open', function(fd) {
+    var text = JSON.stringify(users);
+    stream.write(text);
+    stream.end();
+  });
+}
+
 var users = file.data;
+
     clearScreen();
     console.log('===============================');
     console.log('Users currently registered : ');
@@ -51,7 +101,8 @@ function handleClientState(req,sock){
     var clientState = req.state;
     var message     = req.message;
     var input       = parseInt(req.input);
-    var response    = {};
+    var response        = {};
+        response.error  =  0;
     switch (clientState) {
       case 0:
         response.state = input;
@@ -60,10 +111,13 @@ function handleClientState(req,sock){
         console.log('Server: Registering user');
         console.log(message);
         var user = message;
-        users.array.push(user);
+        if(validateEmail(user.email))
+          users.push(user);
+        else
+          response.error = 1;
         console.log('==========================');
         console.log('User list : ');
-        console.log(users.array);
+        console.log(users);
         console.log('==========================');
 
         response.state = 0;
@@ -75,23 +129,55 @@ function handleClientState(req,sock){
       console.log('User to delete : ');
       console.log(message);
       console.log('=============================');
-      for (var i = 0; i < users.array.length; i++) {
-        if (users.array[i].id == message.id) {
-          console.log('Deleting user  : ' + users.array[i].username);
-          console.log('With ID   : ' + users.array[i].id);
+      for (var i = 0; i < users.length; i++) {
+        if (users[i].id == message.id) {
+          console.log('Deleting user  : ' + users[i].username);
+          console.log('With ID   : ' + users[i].id);
           console.log('=============================');
-          users.array.splice(i,1);
+          users.splice(i,1);
         }
       }
       response.state = 0;
       break;
+      case 5 : sendUsersByMail(); break;
       default: response.state = 0; break;
     }
-    response.users = users.array;
+    response.users = users;
 
-    console.log(settings.file);
-    console.log(JSON.stringify(users));
-
+    saveData();
 
     sock.write(JSON.stringify(response));
+}
+
+
+function validateEmail(email)
+{
+    console.log('Validating Email : ' + email);
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
+function validateID(email)
+{
+    console.log('Validating Email : ' + email);
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
+function sendUsersByMail(receiverEmail){
+  var htmlString = '<h1>User List </h1> <ul>';
+  console.log(users);
+  for (var i = 0; i < users.length; i++) {
+    var listItem = '<li>'
+    listItem += '<span> Username :'        + users[i].username    + '<span>' + '<br>';
+    listItem += '<span> Email :'           + users[i].email       + '<span>' + '<br>';
+    listItem += '<span> User ID :'         + users[i].id          + '<span>' + '<br>';
+    listItem += '<span> User Birthdate : ' + users[i].birthDate   + '<span>' + '<br>';
+    listItem += '</li>'
+    htmlString += listItem;
+  }
+  htmlString += '</ul>'
+
+  send
+  console.log(htmlString);
 }
