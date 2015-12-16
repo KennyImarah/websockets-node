@@ -1,8 +1,27 @@
-var net = require('net');
+//Required dependencies
+var net       = require('net');
+var json = require('json-file');
+var util      = require('util')
 
+//server set up
 var HOST = '127.0.0.1';
 var PORT = 6969;
-var users = [];
+
+//file settings
+var settings      = {};
+    settings.file = '/users.json';
+
+var file = json.read('/users.json');
+var users = file.data;
+    clearScreen();
+    console.log('===============================');
+    console.log('Users currently registered : ');
+    console.log('===============================');
+    console.log(users);
+    console.log('===============================');
+    clearScreen();
+//var users = JSON.parse(file.data);
+//console.log('');
 net.createServer(function(sock) {
 
     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
@@ -26,7 +45,8 @@ function clearScreen(){
     console.log('\n');
 }
 
-
+//Receives a client state which is updated depending on the
+//state received. req = request, sock = client
 function handleClientState(req,sock){
     var clientState = req.state;
     var message     = req.message;
@@ -40,10 +60,10 @@ function handleClientState(req,sock){
         console.log('Server: Registering user');
         console.log(message);
         var user = message;
-        users.push(user);
+        users.array.push(user);
         console.log('==========================');
         console.log('User list : ');
-        console.log(users);
+        console.log(users.array);
         console.log('==========================');
 
         response.state = 0;
@@ -52,11 +72,26 @@ function handleClientState(req,sock){
       response.state = 0;
       break;
       case 3 :
-
+      console.log('User to delete : ');
+      console.log(message);
+      console.log('=============================');
+      for (var i = 0; i < users.array.length; i++) {
+        if (users.array[i].id == message.id) {
+          console.log('Deleting user  : ' + users.array[i].username);
+          console.log('With ID   : ' + users.array[i].id);
+          console.log('=============================');
+          users.array.splice(i,1);
+        }
+      }
       response.state = 0;
       break;
       default: response.state = 0; break;
     }
-    response.users = users;
+    response.users = users.array;
+
+    console.log(settings.file);
+    console.log(JSON.stringify(users));
+
+
     sock.write(JSON.stringify(response));
 }
